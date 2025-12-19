@@ -4,6 +4,10 @@
   "description": "Extension for YDB developers that helps to do everyday job",
   "version": "0.0.1",
   "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UgnineSirdis/vibe-db-extension"
+  },
   "engines": {
     "vscode": "^1.105.0"
   },
