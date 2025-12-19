@@ -17,9 +17,11 @@ class LocalYdbInstanceItem extends vscode.TreeItem {
 		this.contextValue = 'localYdb';
 	}
 
-	// TODO: make own icon
-	// https://code.visualstudio.com/blogs/2016/09/08/icon-themes#_create-your-own-icon-theme
-	iconPath = vscode.ThemeIcon.Folder;
+	// Available icons:
+	// https://code.visualstudio.com/api/references/icons-in-labels
+	//iconPath = new vscode.ThemeIcon('database');
+	//iconPath = new vscode.ThemeIcon('flame');
+	iconPath = new vscode.ThemeIcon('beaker'); // beaker-stop for stopped
 }
 
 // Tree data provider for YDB panel

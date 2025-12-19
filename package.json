@@ -31,12 +31,12 @@
       {
         "command": "vibedb.startLocalYdb",
         "title": "Start/restart",
-        "icon": "$(play)"
+        "icon": "$(notebook-execute)"
       },
       {
         "command": "vibedb.stopLocalYdb",
         "title": "Stop",
-        "icon": "$(stop)"
+        "icon": "$(notebook-stop)"
       },
       {
         "command": "vibedb.deleteLocalYdb",
@@ -46,7 +46,7 @@
       {
         "command": "vibedb.editConfigLocalYdb",
         "title": "Edit Config",
-        "icon": "$(edit)"
+        "icon": "$(wrench)"
       },
       {
         "command": "vibedb.openLogsLocalYdb",
