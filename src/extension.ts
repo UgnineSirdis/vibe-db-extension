@@ -96,6 +96,19 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(ydbTreeView);
 
+	// Helper function to get the selected item or item from arguments
+	const getSelectedItem = async (item?: LocalYdbInstanceItem): Promise<LocalYdbInstanceItem | undefined> => {
+		if (item && item instanceof LocalYdbInstanceItem) {
+			return item;
+		}
+		// If no item provided, try to get from selection
+		const selection = ydbTreeView.selection;
+		if (selection && selection.length > 0 && selection[0] instanceof LocalYdbInstanceItem) {
+			return selection[0];
+		}
+		return undefined;
+	};
+
 	// Command to create a new subfolder
 	const createLocalYdbCommand = vscode.commands.registerCommand('vibedb.createLocalYdb', async () => {
 		const folderName = await vscode.window.showInputBox({
@@ -145,6 +158,128 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	context.subscriptions.push(createLocalYdbCommand);
+
+	// Command to start local YDB instance
+	const startLocalYdbCommand = vscode.commands.registerCommand('vibedb.startLocalYdb', async (item?: LocalYdbInstanceItem) => {
+		const selectedItem = await getSelectedItem(item);
+		if (!selectedItem || !selectedItem.folderPath) {
+			vscode.window.showErrorMessage('Please select a YDB instance');
+			return;
+		}
+
+		try {
+			// TODO: Implement start logic
+			// Example: Execute start command for the YDB instance
+			// const { spawn } = require('child_process');
+			// const startProcess = spawn('ydb', ['start', '--path', selectedItem.folderPath]);
+
+			vscode.window.showInformationMessage(`Starting YDB instance: ${selectedItem.label}`);
+			// Refresh tree view after start
+			localYdbTreeDataProvider.refresh();
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to start YDB instance: ${error}`);
+		}
+	});
+	context.subscriptions.push(startLocalYdbCommand);
+
+	// Command to stop local YDB instance
+	const stopLocalYdbCommand = vscode.commands.registerCommand('vibedb.stopLocalYdb', async (item?: LocalYdbInstanceItem) => {
+		const selectedItem = await getSelectedItem(item);
+		if (!selectedItem || !selectedItem.folderPath) {
+			vscode.window.showErrorMessage('Please select a YDB instance');
+			return;
+		}
+
+		try {
+			// TODO: Implement stop logic
+			// Example: Execute stop command for the YDB instance
+			// const { spawn } = require('child_process');
+			// const stopProcess = spawn('ydb', ['stop', '--path', selectedItem.folderPath]);
+
+			vscode.window.showInformationMessage(`Stopping YDB instance: ${selectedItem.label}`);
+			// Refresh tree view after stop
+			localYdbTreeDataProvider.refresh();
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to stop YDB instance: ${error}`);
+		}
+	});
+	context.subscriptions.push(stopLocalYdbCommand);
+
+	// Command to delete local YDB instance
+	const deleteLocalYdbCommand = vscode.commands.registerCommand('vibedb.deleteLocalYdb', async (item?: LocalYdbInstanceItem) => {
+		const selectedItem = await getSelectedItem(item);
+		if (!selectedItem || !selectedItem.folderPath) {
+			vscode.window.showErrorMessage('Please select a YDB instance');
+			return;
+		}
+
+		const confirm = await vscode.window.showWarningMessage(
+			`Are you sure you want to delete "${selectedItem.label}"?`,
+			{ modal: true },
+			'Delete'
+		);
+
+		if (confirm !== 'Delete') {
+			return;
+		}
+
+		try {
+			// TODO: Implement delete logic
+			// Example: Remove the folder and all its contents
+			// fs.rmSync(selectedItem.folderPath, { recursive: true, force: true });
+
+			vscode.window.showInformationMessage(`Deleted YDB instance: ${selectedItem.label}`);
+			// Refresh tree view after deletion
+			localYdbTreeDataProvider.refresh();
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to delete YDB instance: ${error}`);
+		}
+	});
+	context.subscriptions.push(deleteLocalYdbCommand);
+
+	// Command to edit config for local YDB instance
+	const editConfigLocalYdbCommand = vscode.commands.registerCommand('vibedb.editConfigLocalYdb', async (item?: LocalYdbInstanceItem) => {
+		const selectedItem = await getSelectedItem(item);
+		if (!selectedItem || !selectedItem.folderPath) {
+			vscode.window.showErrorMessage('Please select a YDB instance');
+			return;
+		}
+
+		try {
+			// TODO: Implement edit config logic
+			// Example: Open config file in editor
+			// const configPath = path.join(selectedItem.folderPath, 'config.yaml');
+			// const document = await vscode.workspace.openTextDocument(configPath);
+			// await vscode.window.showTextDocument(document);
+
+			vscode.window.showInformationMessage(`Opening config for: ${selectedItem.label}`);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to open config: ${error}`);
+		}
+	});
+	context.subscriptions.push(editConfigLocalYdbCommand);
+
+	// Command to open logs for local YDB instance
+	const openLogsLocalYdbCommand = vscode.commands.registerCommand('vibedb.openLogsLocalYdb', async (item?: LocalYdbInstanceItem) => {
+		const selectedItem = await getSelectedItem(item);
+		if (!selectedItem || !selectedItem.folderPath) {
+			vscode.window.showErrorMessage('Please select a YDB instance');
+			return;
+		}
+
+		try {
+			// TODO: Implement open logs logic
+			// Example: Open log file in editor or output channel
+			// const logPath = path.join(selectedItem.folderPath, 'logs', 'ydb.log');
+			// const document = await vscode.workspace.openTextDocument(logPath);
+			// await vscode.window.showTextDocument(document);
+
+			vscode.window.showInformationMessage(`Opening logs for: ${selectedItem.label}`);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to open logs: ${error}`);
+		}
+	});
+	context.subscriptions.push(openLogsLocalYdbCommand);
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
