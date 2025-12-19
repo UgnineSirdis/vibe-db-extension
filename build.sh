@@ -10,6 +10,9 @@ npm install
 # compile
 npm run compile
 
+# lint
+npm run lint
+
 # build .vsix file
 # it can be used to install extension in VSCode/Cursor
 # if the following command fails, you need to install vsce:
