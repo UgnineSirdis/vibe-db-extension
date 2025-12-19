@@ -140,6 +140,165 @@ class LocalYdbTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeIte
 	}
 }
 
+// Function to build binaries using ya make command
+async function buildBinaries(yaMakeOutputChannel: vscode.OutputChannel): Promise<void> {
+	// Get the workspace folder
+	const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+	if (!workspaceFolder) {
+		vscode.window.showErrorMessage('No workspace folder open');
+		return;
+	}
+
+	const workspaceFolderPath = workspaceFolder.uri.fsPath;
+
+	// Execute ya make command with output to VS Code console
+	const yaMakeCommand = `${workspaceFolderPath}/ya`;
+	const yaMakeArgs = [
+		'make',
+		'--build', 'relwithdebinfo',
+		`${workspaceFolderPath}/ydb/apps/ydbd`,
+		`${workspaceFolderPath}/ydb/apps/ydb`,
+		`${workspaceFolderPath}/ydb/public/tools/local_ydb`
+	];
+
+	// Show and clear the output channel
+	yaMakeOutputChannel.clear();
+	yaMakeOutputChannel.show(true);
+	yaMakeOutputChannel.appendLine(`Executing: ${yaMakeCommand} ${yaMakeArgs.join(' ')}`);
+	yaMakeOutputChannel.appendLine('');
+
+	// Execute command using spawn for real-time output
+	await new Promise<void>((resolve, reject) => {
+		const process = spawn(yaMakeCommand, yaMakeArgs, {
+			cwd: workspaceFolderPath,
+			shell: true
+		});
+
+		process.stdout.on('data', (data) => {
+			yaMakeOutputChannel.append(data.toString());
+		});
+
+		process.stderr.on('data', (data) => {
+			yaMakeOutputChannel.append(data.toString());
+		});
+
+		process.on('close', (code) => {
+			yaMakeOutputChannel.appendLine('');
+			if (code === 0) {
+				yaMakeOutputChannel.appendLine(`Command completed successfully with exit code ${code}`);
+				resolve();
+			} else {
+				yaMakeOutputChannel.appendLine(`Command failed with exit code ${code}`);
+				reject(new Error(`ya make command failed with exit code ${code}`));
+			}
+		});
+
+		process.on('error', (error) => {
+			yaMakeOutputChannel.appendLine(`Error executing command: ${error.message}`);
+			reject(error);
+		});
+	});
+}
+
+async function runLocalYdb(localYdbOutputChannel: vscode.OutputChannel, localYdbDir: string, command: string): Promise<void> {
+	// Get the workspace folder
+	const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+	if (!workspaceFolder) {
+		vscode.window.showErrorMessage('No workspace folder open');
+		return;
+	}
+
+	const workspaceFolderPath = workspaceFolder.uri.fsPath;
+
+	// Execute ya make command with output to VS Code console
+	const localYdbCommand = `${workspaceFolderPath}/ydb/public/tools/local_ydb/local_ydb`;
+	const localYdbArgs = [
+		command,
+		'--ydb-binary-path', `${workspaceFolderPath}/ydb/apps/ydbd/ydbd`,
+		'--fixed-ports',
+		'--ydb-working-dir', localYdbDir
+	];
+
+	// Show and clear the output channel
+	localYdbOutputChannel.clear();
+	localYdbOutputChannel.show(true);
+	localYdbOutputChannel.appendLine(`Executing: ${localYdbCommand} ${localYdbArgs.join(' ')}`);
+	localYdbOutputChannel.appendLine('');
+
+	const localYdbCommonDir = path.join(os.homedir(), 'local-ydb');
+
+	// Execute command using spawn for real-time output
+	await new Promise<void>((resolve, reject) => {
+		const process = spawn(localYdbCommand, localYdbArgs, {
+			cwd: localYdbCommonDir,
+			shell: true,
+			env: {
+				MON_PORT: '28040',
+				GRPC_PORT: '17690',
+				GRPC_TLS_PORT: '17691',
+				IC_PORT: '17692',
+				GRPC_EXT_PORT: '17693',
+				PUBLIC_HTTP_PORT: '28041'
+			}
+		});
+
+		process.stdout.on('data', (data) => {
+			localYdbOutputChannel.append(data.toString());
+		});
+
+		process.stderr.on('data', (data) => {
+			localYdbOutputChannel.append(data.toString());
+		});
+
+		process.on('close', (code) => {
+			localYdbOutputChannel.appendLine('');
+			if (code === 0) {
+				localYdbOutputChannel.appendLine(`Command completed successfully with exit code ${code}`);
+				resolve();
+			} else {
+				localYdbOutputChannel.appendLine(`Command failed with exit code ${code}`);
+				reject(new Error(`ya make command failed with exit code ${code}`));
+			}
+		});
+
+		process.on('error', (error) => {
+			localYdbOutputChannel.appendLine(`Error executing command: ${error.message}`);
+			reject(error);
+		});
+	});
+}
+
+async function killYdbdProcess(): Promise<void> {
+	try {
+		const currentUser = os.userInfo().username;
+		const { stdout } = await execAsync(`ps -u ${currentUser} -o pid=,comm=`);
+		const pids = stdout
+			.split('\n')
+			.map(line => line.trim())
+			.filter(line => line.length > 0)
+			.map(line => {
+				const firstSpace = line.indexOf(' ');
+				if (firstSpace === -1) {
+					return { pid: Number(line), command: '' };
+				}
+				const pid = Number(line.slice(0, firstSpace).trim());
+				const command = line.slice(firstSpace + 1).trim();
+				return { pid, command };
+			})
+			.filter(entry => entry.command === 'ydbd')
+			.map(entry => entry.pid)
+			.filter(pid => Number.isFinite(pid) && pid > 0 && pid !== process.pid);
+
+		if (pids.length === 0) {
+			return;
+		}
+
+		await execAsync(`kill ${pids.join(' ')}`);
+	} catch (error) {
+		console.error('Error killing processes for current user:', error);
+	}
+}
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -150,7 +309,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Create output channel for ya make command output
 	const yaMakeOutputChannel = vscode.window.createOutputChannel('ya make');
+	const localYdbOutputChannel = vscode.window.createOutputChannel('local ydb tool');
 	context.subscriptions.push(yaMakeOutputChannel);
+	context.subscriptions.push(localYdbOutputChannel);
 
 	// Register YDB tree view
 	const localYdbTreeDataProvider = new LocalYdbTreeDataProvider();
@@ -208,62 +369,11 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			// Get the workspace folder
-			const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-			if (!workspaceFolder) {
-				vscode.window.showErrorMessage('No workspace folder open');
-				return;
-			}
+			await buildBinaries(yaMakeOutputChannel);
 
-			const workspaceFolderPath = workspaceFolder.uri.fsPath;
+			await killYdbdProcess();
 
-			// Execute ya make command with output to VS Code console
-			const yaMakeCommand = `${workspaceFolderPath}/ya`;
-			const yaMakeArgs = [
-				'make',
-				'--build', 'relwithdebinfo',
-				`${workspaceFolderPath}/ydb/apps/ydbd`,
-				`${workspaceFolderPath}/ydb/apps/ydb`,
-				`${workspaceFolderPath}/ydb/public/tools/local_ydb`
-			];
-
-			// Show and clear the output channel
-			yaMakeOutputChannel.clear();
-			yaMakeOutputChannel.show(true);
-			yaMakeOutputChannel.appendLine(`Executing: ${yaMakeCommand} ${yaMakeArgs.join(' ')}`);
-			yaMakeOutputChannel.appendLine('');
-
-			// Execute command using spawn for real-time output
-			await new Promise<void>((resolve, reject) => {
-				const process = spawn(yaMakeCommand, yaMakeArgs, {
-					cwd: workspaceFolderPath,
-					shell: true
-				});
-
-				process.stdout.on('data', (data) => {
-					yaMakeOutputChannel.append(data.toString());
-				});
-
-				process.stderr.on('data', (data) => {
-					yaMakeOutputChannel.append(data.toString());
-				});
-
-				process.on('close', (code) => {
-					yaMakeOutputChannel.appendLine('');
-					if (code === 0) {
-						yaMakeOutputChannel.appendLine(`Command completed successfully with exit code ${code}`);
-						resolve();
-					} else {
-						yaMakeOutputChannel.appendLine(`Command failed with exit code ${code}`);
-						reject(new Error(`ya make command failed with exit code ${code}`));
-					}
-				});
-
-				process.on('error', (error) => {
-					yaMakeOutputChannel.appendLine(`Error executing command: ${error.message}`);
-					reject(error);
-				});
-			});
+			await runLocalYdb(localYdbOutputChannel, newFolderPath, 'deploy');
 
 			// Refresh the tree view
 			localYdbTreeDataProvider.refresh();
@@ -275,6 +385,17 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	context.subscriptions.push(createLocalYdbCommand);
+
+	const refreshLocalYdbCommand = vscode.commands.registerCommand('vibedb.refreshLocalYdb', async () => {
+		try {
+			// Refresh the tree view
+			localYdbTreeDataProvider.refresh();
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to refresh local-ydb list: ${error}`);
+		}
+	});
+
+	context.subscriptions.push(refreshLocalYdbCommand);
 
 	// Command to start local YDB instance
 	const startLocalYdbCommand = vscode.commands.registerCommand('vibedb.startLocalYdb', async (item?: LocalYdbInstanceItem) => {
@@ -291,7 +412,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// const startProcess = spawn('ydb', ['start', '--path', selectedItem.folderPath]);
 
 			vscode.window.showInformationMessage(`Starting YDB instance: ${selectedItem.label}`);
-			// Refresh tree view after start
+			// Refresh tree view
 			localYdbTreeDataProvider.refresh();
 		} catch (error) {
 			vscode.window.showErrorMessage(`Failed to start YDB instance: ${error}`);

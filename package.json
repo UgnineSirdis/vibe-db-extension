@@ -29,6 +29,11 @@
         "icon": "$(add)"
       },
       {
+        "command": "vibedb.refreshLocalYdb",
+        "title": "Refresh local-ydb list",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "vibedb.startLocalYdb",
         "title": "Start/restart",
         "icon": "$(notebook-execute)"
@@ -67,6 +72,11 @@
       "view/title": [
         {
           "command": "vibedb.createLocalYdb",
+          "when": "view == local-ydb",
+          "group": "navigation"
+        },
+        {
+          "command": "vibedb.refreshLocalYdb",
           "when": "view == local-ydb",
           "group": "navigation"
         }
