@@ -484,13 +484,15 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		try {
-			// TODO: Implement edit config logic
-			// Example: Open config file in editor
-			// const configPath = path.join(selectedItem.folderPath, 'config.yaml');
-			// const document = await vscode.workspace.openTextDocument(configPath);
-			// await vscode.window.showTextDocument(document);
+			const configPattern = new vscode.RelativePattern(selectedItem.folderPath, '**/config.yaml');
+			const matches = await vscode.workspace.findFiles(configPattern, '**/node_modules/**', 1);
+			if (matches.length === 0) {
+				vscode.window.showErrorMessage(`Config not found for: ${selectedItem.label}`);
+				return;
+			}
 
-			vscode.window.showInformationMessage(`Opening config for: ${selectedItem.label}`);
+			const document = await vscode.workspace.openTextDocument(matches[0]);
+			await vscode.window.showTextDocument(document);
 		} catch (error) {
 			vscode.window.showErrorMessage(`Failed to open config: ${error}`);
 		}
@@ -506,15 +508,17 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		try {
-			// TODO: Implement open logs logic
-			// Example: Open log file in editor or output channel
-			// const logPath = path.join(selectedItem.folderPath, 'logs', 'ydb.log');
-			// const document = await vscode.workspace.openTextDocument(logPath);
-			// await vscode.window.showTextDocument(document);
+			const logFilePattern = new vscode.RelativePattern(selectedItem.folderPath, '**/logfile_*');
+			const matches = await vscode.workspace.findFiles(logFilePattern, '**/node_modules/**', 1);
+			if (matches.length === 0) {
+				vscode.window.showErrorMessage(`Log file not found for: ${selectedItem.label}`);
+				return;
+			}
 
-			vscode.window.showInformationMessage(`Opening logs for: ${selectedItem.label}`);
+			const document = await vscode.workspace.openTextDocument(matches[0]);
+			await vscode.window.showTextDocument(document);
 		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to open logs: ${error}`);
+			vscode.window.showErrorMessage(`Failed to open log: ${error}`);
 		}
 	});
 	context.subscriptions.push(openLogsLocalYdbCommand);
