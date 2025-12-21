@@ -405,13 +405,17 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		try {
-			// TODO: Implement start logic
-			// Example: Execute start command for the YDB instance
-			// const { spawn } = require('child_process');
-			// const startProcess = spawn('ydb', ['start', '--path', selectedItem.folderPath]);
+		const localYdbPath = path.join(os.homedir(), 'local-ydb');
+		const folderPath = path.join(localYdbPath, selectedItem.label);
 
-			vscode.window.showInformationMessage(`Building and starting YDB instance: ${selectedItem.label}`);
+		try {
+			await buildBinaries(yaMakeOutputChannel);
+
+			await killYdbdProcess();
+
+			await runLocalYdb(localYdbOutputChannel, folderPath, 'start');
+
+			vscode.window.showInformationMessage(`Started YDB instance: ${selectedItem.label}`);
 			// Refresh tree view
 			localYdbTreeDataProvider.refresh();
 		} catch (error) {
@@ -428,13 +432,15 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		try {
-			// TODO: Implement start logic
-			// Example: Execute start command for the YDB instance
-			// const { spawn } = require('child_process');
-			// const startProcess = spawn('ydb', ['start', '--path', selectedItem.folderPath]);
+		const localYdbPath = path.join(os.homedir(), 'local-ydb');
+		const folderPath = path.join(localYdbPath, selectedItem.label);
 
-			vscode.window.showInformationMessage(`Starting YDB instance: ${selectedItem.label}`);
+		try {
+			await killYdbdProcess();
+
+			await runLocalYdb(localYdbOutputChannel, folderPath, 'start');
+
+			vscode.window.showInformationMessage(`Started YDB instance: ${selectedItem.label}`);
 			// Refresh tree view
 			localYdbTreeDataProvider.refresh();
 		} catch (error) {
@@ -452,12 +458,9 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		try {
-			// TODO: Implement stop logic
-			// Example: Execute stop command for the YDB instance
-			// const { spawn } = require('child_process');
-			// const stopProcess = spawn('ydb', ['stop', '--path', selectedItem.folderPath]);
+			await killYdbdProcess();
 
-			vscode.window.showInformationMessage(`Stopping YDB instance: ${selectedItem.label}`);
+			vscode.window.showInformationMessage(`Stopped YDB instance: ${selectedItem.label}`);
 			// Refresh tree view after stop
 			localYdbTreeDataProvider.refresh();
 		} catch (error) {
@@ -484,10 +487,12 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
+		const localYdbPath = path.join(os.homedir(), 'local-ydb');
+		const folderPath = path.join(localYdbPath, selectedItem.label);
+
 		try {
-			// TODO: Implement delete logic
-			// Example: Remove the folder and all its contents
-			// fs.rmSync(selectedItem.folderPath, { recursive: true, force: true });
+			await killYdbdProcess();
+			await fs.promises.rm(folderPath, { recursive: true, force: true });
 
 			vscode.window.showInformationMessage(`Deleted YDB instance: ${selectedItem.label}`);
 			// Refresh tree view after deletion
