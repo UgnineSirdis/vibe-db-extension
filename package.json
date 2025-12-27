@@ -21,18 +21,22 @@
     "commands": [
       {
         "command": "vibedb.createLocalYdb",
-        "title": "New local-ydb",
-        "description": "Builds ydbd, ydb and local_ydb tool and creates a new local-ydb in specified folder",
+        "title": "Build and run new local YDB in specified folder",
         "icon": "$(add)"
       },
       {
+        "command": "vibedb.stopLocalYdb",
+        "title": "Stop running local YDB",
+        "icon": "$(notebook-stop)"
+      },
+      {
         "command": "vibedb.refreshLocalYdb",
-        "title": "Refresh local-ydb list",
+        "title": "Refresh local YDB list",
         "icon": "$(refresh)"
       },
       {
         "command": "vibedb.buildStartLocalYdb",
-        "title": "Build -> start",
+        "title": "Build and restart",
         "icon": "$(debug-rerun)"
       },
       {
@@ -41,13 +45,8 @@
         "icon": "$(notebook-execute)"
       },
       {
-        "command": "vibedb.stopLocalYdb",
-        "title": "Stop",
-        "icon": "$(notebook-stop)"
-      },
-      {
         "command": "vibedb.deleteLocalYdb",
-        "title": "Delete",
+        "title": "Stop and delete",
         "icon": "$(trash)"
       },
       {
@@ -75,12 +74,17 @@
         {
           "command": "vibedb.createLocalYdb",
           "when": "view == local-ydb",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "vibedb.stopLocalYdb",
+          "when": "view == local-ydb",
+          "group": "navigation@2"
         },
         {
           "command": "vibedb.refreshLocalYdb",
           "when": "view == local-ydb",
-          "group": "navigation"
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
@@ -95,24 +99,19 @@
           "group": "inline@2"
         },
         {
-          "command": "vibedb.stopLocalYdb",
+          "command": "vibedb.deleteLocalYdb",
           "when": "view == local-ydb && viewItem == localYdb",
           "group": "inline@3"
         },
         {
-          "command": "vibedb.deleteLocalYdb",
+          "command": "vibedb.editConfigLocalYdb",
           "when": "view == local-ydb && viewItem == localYdb",
           "group": "inline@4"
         },
         {
-          "command": "vibedb.editConfigLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
-          "group": "inline@5"
-        },
-        {
           "command": "vibedb.openLogsLocalYdb",
           "when": "view == local-ydb && viewItem == localYdb",
-          "group": "inline@6"
+          "group": "inline@5"
         },
         {
           "command": "vibedb.buildStartLocalYdb",

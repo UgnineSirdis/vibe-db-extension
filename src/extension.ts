@@ -66,6 +66,7 @@ class LocalYdbInstanceItem extends vscode.TreeItem {
 		super(label, collapsibleState);
 		this.tooltip = this.folderPath;
 		this.contextValue = 'localYdb';
+		this.active = active;
 		if (active) {
 			this.iconPath = new vscode.ThemeIcon('beaker');
 		} else {
@@ -75,8 +76,6 @@ class LocalYdbInstanceItem extends vscode.TreeItem {
 
 	// Available icons:
 	// https://code.visualstudio.com/api/references/icons-in-labels
-	//iconPath = new vscode.ThemeIcon('database');
-	//iconPath = new vscode.ThemeIcon('flame');
 	iconPath = new vscode.ThemeIcon('beaker-stop'); // beaker for running
 }
 
@@ -412,6 +411,20 @@ export function activate(context: vscode.ExtensionContext) {
 		return undefined;
 	};
 
+	// Command to stop local YDB instance
+	const stopLocalYdbCommand = vscode.commands.registerCommand('vibedb.stopLocalYdb', async () => {
+		try {
+			await killYdbdProcess();
+
+			vscode.window.showInformationMessage(`Stopped YDB instance`);
+			// Refresh tree view after stop
+			localYdbTreeDataProvider.refresh();
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to stop YDB instance: ${error}`);
+		}
+	});
+	context.subscriptions.push(stopLocalYdbCommand);
+
 	// Command to create a new subfolder
 	const createLocalYdbCommand = vscode.commands.registerCommand('vibedb.createLocalYdb', async () => {
 		const folderName = await vscode.window.showInputBox({
@@ -457,12 +470,11 @@ export function activate(context: vscode.ExtensionContext) {
 			// Refresh the tree view
 			localYdbTreeDataProvider.refresh();
 
-			vscode.window.showInformationMessage(`Added local-ydb: ${folderName}`);
+			vscode.window.showInformationMessage(`Added local YDB: ${folderName}`);
 		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to add local-ydb: ${error}`);
+			vscode.window.showErrorMessage(`Failed to add local YDB: ${error}`);
 		}
 	});
-
 	context.subscriptions.push(createLocalYdbCommand);
 
 	const refreshLocalYdbCommand = vscode.commands.registerCommand('vibedb.refreshLocalYdb', async () => {
@@ -470,10 +482,9 @@ export function activate(context: vscode.ExtensionContext) {
 			// Refresh the tree view
 			localYdbTreeDataProvider.refresh();
 		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to refresh local-ydb list: ${error}`);
+			vscode.window.showErrorMessage(`Failed to refresh local YDB list: ${error}`);
 		}
 	});
-
 	context.subscriptions.push(refreshLocalYdbCommand);
 
 	// Command to start local YDB instance
@@ -528,26 +539,6 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(startLocalYdbCommand);
 
-	// Command to stop local YDB instance
-	const stopLocalYdbCommand = vscode.commands.registerCommand('vibedb.stopLocalYdb', async (item?: LocalYdbInstanceItem) => {
-		const selectedItem = await getSelectedItem(item);
-		if (!selectedItem || !selectedItem.folderPath) {
-			vscode.window.showErrorMessage('Please select a YDB instance');
-			return;
-		}
-
-		try {
-			await killYdbdProcess();
-
-			vscode.window.showInformationMessage(`Stopped YDB instance: ${selectedItem.label}`);
-			// Refresh tree view after stop
-			localYdbTreeDataProvider.refresh();
-		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to stop YDB instance: ${error}`);
-		}
-	});
-	context.subscriptions.push(stopLocalYdbCommand);
-
 	// Command to delete local YDB instance
 	const deleteLocalYdbCommand = vscode.commands.registerCommand('vibedb.deleteLocalYdb', async (item?: LocalYdbInstanceItem) => {
 		const selectedItem = await getSelectedItem(item);
@@ -570,7 +561,9 @@ export function activate(context: vscode.ExtensionContext) {
 		const folderPath = path.join(localYdbPath, selectedItem.label);
 
 		try {
-			await killYdbdProcess();
+			if (selectedItem.active) {
+				await killYdbdProcess();
+			}
 			await fs.promises.rm(folderPath, { recursive: true, force: true });
 
 			vscode.window.showInformationMessage(`Deleted YDB instance: ${selectedItem.label}`);
