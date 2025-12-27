@@ -31,6 +31,30 @@ function getDefaultLocalYdbPorts() {
 	};
 }
 
+async function ensureLocalYdbPortDefaults(): Promise<void> {
+	const config = vscode.workspace.getConfiguration('ydb');
+	const defaults = getDefaultLocalYdbPorts();
+	const entries: Array<[string, number]> = [
+		['localYdbPorts.monPort', defaults.monPort],
+		['localYdbPorts.grpcPort', defaults.grpcPort],
+		['localYdbPorts.grpcTlsPort', defaults.grpcTlsPort],
+		['localYdbPorts.icPort', defaults.icPort],
+		['localYdbPorts.grpcExtPort', defaults.grpcExtPort],
+		['localYdbPorts.publicHttpPort', defaults.publicHttpPort]
+	];
+
+	for (const [key, value] of entries) {
+		const inspection = config.inspect<number>(key);
+		if (inspection?.globalValue !== undefined ||
+			inspection?.workspaceValue !== undefined ||
+			inspection?.workspaceFolderValue !== undefined) {
+			continue;
+		}
+
+		await config.update(key, value, vscode.ConfigurationTarget.Global);
+	}
+}
+
 // Tree item for subfolders
 class LocalYdbInstanceItem extends vscode.TreeItem {
 	constructor(
@@ -252,12 +276,12 @@ async function runLocalYdb(localYdbOutputChannel: vscode.OutputChannel, localYdb
 	const localYdbConfig = vscode.workspace.getConfiguration('ydb');
 	const defaultLocalYdbPorts = getDefaultLocalYdbPorts();
 	const localYdbPorts = {
-		monPort: localYdbConfig.get<number>('localPorts.monPort', defaultLocalYdbPorts.monPort),
-		grpcPort: localYdbConfig.get<number>('localPorts.grpcPort', defaultLocalYdbPorts.grpcPort),
-		grpcTlsPort: localYdbConfig.get<number>('localPorts.grpcTlsPort', defaultLocalYdbPorts.grpcTlsPort),
-		icPort: localYdbConfig.get<number>('localPorts.icPort', defaultLocalYdbPorts.icPort),
-		grpcExtPort: localYdbConfig.get<number>('localPorts.grpcExtPort', defaultLocalYdbPorts.grpcExtPort),
-		publicHttpPort: localYdbConfig.get<number>('localPorts.publicHttpPort', defaultLocalYdbPorts.publicHttpPort)
+		monPort: localYdbConfig.get<number>('localYdbPorts.monPort', defaultLocalYdbPorts.monPort),
+		grpcPort: localYdbConfig.get<number>('localYdbPorts.grpcPort', defaultLocalYdbPorts.grpcPort),
+		grpcTlsPort: localYdbConfig.get<number>('localYdbPorts.grpcTlsPort', defaultLocalYdbPorts.grpcTlsPort),
+		icPort: localYdbConfig.get<number>('localYdbPorts.icPort', defaultLocalYdbPorts.icPort),
+		grpcExtPort: localYdbConfig.get<number>('localYdbPorts.grpcExtPort', defaultLocalYdbPorts.grpcExtPort),
+		publicHttpPort: localYdbConfig.get<number>('localYdbPorts.publicHttpPort', defaultLocalYdbPorts.publicHttpPort)
 	};
 
 
@@ -358,6 +382,9 @@ export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "VibeDB" is now active!');
+	ensureLocalYdbPortDefaults().catch((error) => {
+		console.error('Failed to initialize local YDB port defaults:', error);
+	});
 
 	// Create output channel for ya make command output
 	const yaMakeOutputChannel = vscode.window.createOutputChannel('ya make');
