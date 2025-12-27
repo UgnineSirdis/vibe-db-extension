@@ -15,7 +15,11 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "workspaceContains:ydb/apps/ydbd",
+    "workspaceContains:ydb/apps/ydb",
+    "workspaceContains:ydb/public/tools/local_ydb"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -70,7 +74,7 @@
         {
           "id": "local-ydb",
           "name": "Local YDB",
-          "when": "true"
+          "when": "vibedb.enabled"
         }
       ]
     },
@@ -78,79 +82,79 @@
       "view/title": [
         {
           "command": "vibedb.createLocalYdb",
-          "when": "view == local-ydb",
+          "when": "view == local-ydb && vibedb.enabled",
           "group": "navigation@1"
         },
         {
           "command": "vibedb.stopLocalYdb",
-          "when": "view == local-ydb",
+          "when": "view == local-ydb && vibedb.enabled",
           "group": "navigation@2"
         },
         {
           "command": "vibedb.refreshLocalYdb",
-          "when": "view == local-ydb",
+          "when": "view == local-ydb && vibedb.enabled",
           "group": "navigation@3"
         },
         {
           "command": "vibedb.localYdbInfo",
-          "when": "view == local-ydb",
+          "when": "view == local-ydb && vibedb.enabled",
           "group": "navigation@4"
         }
       ],
       "view/item/context": [
         {
           "command": "vibedb.buildStartLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "inline@1"
         },
         {
           "command": "vibedb.startLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "inline@2"
         },
         {
           "command": "vibedb.deleteLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "inline@3"
         },
         {
           "command": "vibedb.editConfigLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "inline@4"
         },
         {
           "command": "vibedb.openLogsLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "inline@5"
         },
         {
           "command": "vibedb.buildStartLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "actions"
         },
         {
           "command": "vibedb.startLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "actions"
         },
         {
           "command": "vibedb.stopLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "actions"
         },
         {
           "command": "vibedb.deleteLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "actions"
         },
         {
           "command": "vibedb.editConfigLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "actions"
         },
         {
           "command": "vibedb.openLogsLocalYdb",
-          "when": "view == local-ydb && viewItem == localYdb",
+          "when": "view == local-ydb && viewItem == localYdb && vibedb.enabled",
           "group": "actions"
         }
       ]

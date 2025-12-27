@@ -10,6 +10,35 @@ import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
+const YDB_BINARIES_SUBFOLDERS = [
+	'ydb/apps/ydbd',
+	'ydb/apps/ydb',
+	'ydb/public/tools/local_ydb'
+];
+
+async function workspaceHasYdbSubfolders(): Promise<boolean> {
+	const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+	if (!workspaceFolder) {
+		return false;
+	}
+
+	const workspaceFolderPath = workspaceFolder.uri.fsPath;
+
+	for (const relativePath of YDB_BINARIES_SUBFOLDERS) {
+		const fullPath = path.join(workspaceFolderPath, relativePath);
+		try {
+			const stat = await fs.promises.stat(fullPath);
+			if (!stat.isDirectory()) {
+				return false;
+			}
+		} catch {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 function getDefaultLocalYdbPorts() {
 	const username = process.env.USER ?? process.env.USERNAME ?? 'user';
 	const hash = crypto.createHash('sha256').update('ydb-local-ports').update(username).digest('hex');
@@ -376,7 +405,14 @@ async function killYdbdProcess(): Promise<void> {
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
+
+	const enabled = await workspaceHasYdbSubfolders();
+	await vscode.commands.executeCommand('setContext', 'vibedb.enabled', enabled);
+	if (!enabled) {
+		console.log('VibeDB extension disabled: required YDB folders not found in workspace.');
+		return;
+	}
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
