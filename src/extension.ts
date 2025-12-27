@@ -324,7 +324,8 @@ async function runLocalYdb(localYdbOutputChannel: vscode.OutputChannel, localYdb
 				GRPC_TLS_PORT: String(localYdbPorts.grpcTlsPort),
 				IC_PORT: String(localYdbPorts.icPort),
 				GRPC_EXT_PORT: String(localYdbPorts.grpcExtPort),
-				PUBLIC_HTTP_PORT: String(localYdbPorts.publicHttpPort)
+				PUBLIC_HTTP_PORT: String(localYdbPorts.publicHttpPort),
+				YDB_ENABLE_SIGNAL_BACKTRACE: "1"
 			}
 		});
 
