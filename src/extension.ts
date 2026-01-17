@@ -257,20 +257,31 @@ async function buildBinaries(yaMakeOutputChannel: vscode.OutputChannel): Promise
 
 	// Execute command using spawn for real-time output
 	await new Promise<void>((resolve, reject) => {
-		const process = spawn(yaMakeCommand, yaMakeArgs, {
+		const yaMakeProcess = spawn(yaMakeCommand, yaMakeArgs, {
 			cwd: workspaceFolderPath,
-			shell: true
+			shell: false,
+			stdio: ['ignore', 'pipe', 'pipe'],
+			// Force unbuffered output so the channel is updated as soon as the process writes
+			env: {
+				...process.env,
+				PYTHONUNBUFFERED: '1'
+			}
 		});
 
-		process.stdout.on('data', (data) => {
-			yaMakeOutputChannel.append(data.toString());
-		});
+		const forwardStream = (stream: NodeJS.ReadableStream | null) => {
+			if (!stream) {
+				return;
+			}
+			stream.setEncoding('utf8');
+			stream.on('data', (data: string) => {
+				yaMakeOutputChannel.append(data);
+			});
+		};
 
-		process.stderr.on('data', (data) => {
-			yaMakeOutputChannel.append(data.toString());
-		});
+		forwardStream(yaMakeProcess.stdout);
+		forwardStream(yaMakeProcess.stderr);
 
-		process.on('close', (code) => {
+		yaMakeProcess.on('close', (code) => {
 			yaMakeOutputChannel.appendLine('');
 			if (code === 0) {
 				yaMakeOutputChannel.appendLine(`Command completed successfully with exit code ${code}`);
@@ -281,7 +292,7 @@ async function buildBinaries(yaMakeOutputChannel: vscode.OutputChannel): Promise
 			}
 		});
 
-		process.on('error', (error) => {
+		yaMakeProcess.on('error', (error) => {
 			yaMakeOutputChannel.appendLine(`Error executing command: ${error.message}`);
 			reject(error);
 		});
