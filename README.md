@@ -11,6 +11,7 @@ YDB Code is extension for YDB developers
 - `+ Build and run new local YDB in specified folder`: prompts for a folder name, builds `ydbd` and `local_ydb`, then deploys a new instance in `~/local-ydb/<name>`.
 - `Stop running local YDB`: stops any running `ydbd` started by the extension.
 - `Refresh local YDB list`: reloads the list of local instances and updates their running status.
+- `Open UI`: opens the local YDB monitoring UI in your browser.
 - `Local YDB connection info`: shows gRPC/UI URLs; choose to open the UI or copy either URL to the clipboard.
 
 ### Per-instance buttons (hover a row)
@@ -45,3 +46,7 @@ YDB Code is extension for YDB developers
 ### 1.0
 
 The very first release
+
+### 1.1
+
+Add separate button for opening UI

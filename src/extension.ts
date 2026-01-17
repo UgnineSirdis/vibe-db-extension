@@ -84,6 +84,20 @@ async function ensureLocalYdbPortDefaults(): Promise<void> {
 	}
 }
 
+function getLocalYdbUrls() {
+	const localYdbConfig = vscode.workspace.getConfiguration('ydb');
+	const defaultLocalYdbPorts = getDefaultLocalYdbPorts();
+	const localYdbPorts = {
+		monPort: localYdbConfig.get<number>('localYdbPorts.monPort', defaultLocalYdbPorts.monPort),
+		grpcPort: localYdbConfig.get<number>('localYdbPorts.grpcPort', defaultLocalYdbPorts.grpcPort)
+	};
+
+	return {
+		grpcUrl: `grpc://localhost:${localYdbPorts.grpcPort}`,
+		httpUrl: `http://localhost:${localYdbPorts.monPort}`
+	};
+}
+
 // Tree item for subfolders
 class LocalYdbInstanceItem extends vscode.TreeItem {
 	constructor(
@@ -523,17 +537,19 @@ export async function activate(context: vscode.ExtensionContext) {
 	});
 	context.subscriptions.push(refreshLocalYdbCommand);
 
+	const openLocalYdbUiCommand = vscode.commands.registerCommand('ydbcode.openLocalYdbUi', async () => {
+		try {
+			const { httpUrl } = getLocalYdbUrls();
+			await vscode.env.openExternal(vscode.Uri.parse(httpUrl));
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to open local YDB UI: ${error}`);
+		}
+	});
+	context.subscriptions.push(openLocalYdbUiCommand);
+
 	const localYdbInfoCommand = vscode.commands.registerCommand('ydbcode.localYdbInfo', async () => {
 		try {
-			const localYdbConfig = vscode.workspace.getConfiguration('ydb');
-			const defaultLocalYdbPorts = getDefaultLocalYdbPorts();
-			const localYdbPorts = {
-				monPort: localYdbConfig.get<number>('localYdbPorts.monPort', defaultLocalYdbPorts.monPort),
-				grpcPort: localYdbConfig.get<number>('localYdbPorts.grpcPort', defaultLocalYdbPorts.grpcPort)
-			};
-
-			const grpcUrl = `grpc://localhost:${localYdbPorts.grpcPort}`;
-			const httpUrl = `http://localhost:${localYdbPorts.monPort}`;
+			const { grpcUrl, httpUrl } = getLocalYdbUrls();
 			const copyGrpc = `Copy "${grpcUrl}"`;
 			const copyHttp = `Copy "${httpUrl}"`;
 

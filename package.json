@@ -43,6 +43,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "ydbcode.openLocalYdbUi",
+        "title": "Open UI",
+        "icon": "$(notebook-render-output)"
+      },
+      {
         "command": "ydbcode.localYdbInfo",
         "title": "Local YDB connection info",
         "icon": "$(info)"
@@ -100,9 +105,14 @@
           "group": "navigation@3"
         },
         {
-          "command": "ydbcode.localYdbInfo",
+          "command": "ydbcode.openLocalYdbUi",
           "when": "view == local-ydb && ydbcode.enabled",
           "group": "navigation@4"
+        },
+        {
+          "command": "ydbcode.localYdbInfo",
+          "when": "view == local-ydb && ydbcode.enabled",
+          "group": "navigation@5"
         }
       ],
       "view/item/context": [
