@@ -20,6 +20,16 @@ YDB Code is extension for YDB developers
 - `Edit Config`: opens the instance `config.yaml` so you can tweak settings.
 - `Open Logs`: opens the log file from the instance folder.
 
+## Installation
+
+- One time: install Node.js from https://nodejs.org/en/download.
+- One time: install the VS Code packaging tool with `make prepare` (installs `@vscode/vsce` globally).
+- Build the extension package with `make` in the repo root; it produces `ydbcode-<version>.vsix` (a prebuilt `ydbcode-1.0.0.vsix` may already exist).
+- Copy the `.vsix` file to the machine where your YDB workspace lives.
+- Install from the file:
+  - VS Code/Cursor UI: Extensions → "..." → "Install from VSIX..." and select the file.
+  - CLI: `code --install-extension /path/to/ydbcode-<version>.vsix` (or `cursor --install-extension ...`).
+
 ## Release Notes
 
 Users appreciate release notes as you update your extension.
