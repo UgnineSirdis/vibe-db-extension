@@ -32,8 +32,6 @@ YDB Code is extension for YDB developers
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0
 
 The very first release
